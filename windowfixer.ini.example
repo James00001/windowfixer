@@ -1,0 +1,17 @@
+# Comments will be erased when the ini file is resaved with the -s option
+
+# The section header can be anything unique
+[Firefox]
+# The title can be any perl-compatible regular expression
+title=.* - Mozilla Firefox$
+# Valid match values are "first" and "all". Defaults to "all" if ommitted
+match=all
+# x y w h will be filled in when windowfixer is called with the -s command line option
+x=
+y=
+w=
+h=
+# Optional command to run if no title matches are found. After running, will keep trying for a few second
+run_if_not_found=C:\Program Files (x86)\Mozilla Firefox\firefox.exe
+# Optional Number of seconds to keep trying if the run_if_not_found command is triggered
+run_keep_trying=5
