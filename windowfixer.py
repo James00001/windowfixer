@@ -7,6 +7,8 @@ This tool can save and restore the window positions of specific programs.
 import os
 from ConfigParser import RawConfigParser
 import re
+import time
+import subprocess
 
 # Pip packages
 # (from pywin32)
@@ -82,9 +84,28 @@ class Fixer(object):
             print "x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
             print "WARNING: Incomplete saved position. Edit the config file, or run with -s after manually positioning the window"
             return
+        found = self._fix_matching_windows()
+        if not found:
+            if self.command:
+                print self.command
+                subprocess.Popen([self.command])
+                start = time.time()
+                while time.time() < start + self.run_wait:
+                    time.sleep(0.2)
+                    found = self._fix_matching_windows()
+                    if found: break
+                if not found:
+                    print "Started command, waited {} seconds, and gave up.".format(self.run_wait)
+        if not found:
+            print "Unable to find matching window. Skipping."
+    
+    def _fix_matching_windows(self):
+        found = False
         for win in self.each_window():
             print "Move window to x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
             win.set_position(self.x, self.y, self.w, self.h)
+            found = True
+        return found
 
 #-----------------------------------------------------------------------
 
