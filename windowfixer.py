@@ -51,6 +51,14 @@ class WindowObj(object):
 
     def restore(self):
         win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
+    
+    def get_state(self):
+        st = win32gui.GetWindowPlacement(self.hwnd)[1]
+        if st in (win32con.SW_MAXIMIZE, win32con.SW_SHOWMINIMIZED):
+            return "minimized"
+        if st in (win32con.SW_MAXIMIZE, win32con.SW_SHOWMAXIMIZED):
+            return "maximized"
+        return "normal"
 
     def __str__(self):
         return "{}:{}".format(self.hwnd, self.title())
@@ -89,7 +97,7 @@ class Fixer(object):
     def save(self):
         print "Save current position..."
         for win in self.each_window():
-            return win.get_position()
+            return win
         raise SkipSaveWindowNotFoundError("Window title was not found, skipping...")
     
     def fix(self):
@@ -187,11 +195,19 @@ class WindowFixer(object):
             return
         if self.save_mode:
             try:
-                (x, y, w, h) = fixer.save()
-                self.conf.set(section, "x", x)
-                self.conf.set(section, "y", y)
-                self.conf.set(section, "w", w)
-                self.conf.set(section, "h", h)
+                win = fixer.save()
+                state = win.get_state()
+                self.conf.set(section, "state", state)
+                if state == "normal":
+                    (x, y, w, h) = win.get_position()
+                    print (x, y, w, h)
+                    self.conf.set(section, "x", x)
+                    self.conf.set(section, "y", y)
+                    self.conf.set(section, "w", w)
+                    self.conf.set(section, "h", h)
+                else:
+                    print state
+                    self.delete_xywh(section)
             except SkipSaveWindowNotFoundError, e:
                 print e
         else:
@@ -215,6 +231,15 @@ class WindowFixer(object):
             if val.strip() == "": return default
             return self.conf.getfloat(section, opt)
         return default
+    
+    def delete_xywh(self, section):
+        for opt in ["x", "y", "w", "h"]:
+            self.delete_opt(section, opt)
+    
+    def delete_opt(self, section, opt):
+        if self.conf.has_option(section, opt):
+            self.conf.remove_option(section, opt)
+            
 
 #-----------------------------------------------------------------------
 
