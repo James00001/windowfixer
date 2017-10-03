@@ -6,6 +6,9 @@
 title=.* - Mozilla Firefox$
 # Valid match values are "first" and "all". Defaults to "all" if ommitted
 match=all
+# state can be "maximized" "minimized" or "normal"
+# normal is the default. x, y, w, h only have meaning in "normal" mode
+state=regular
 # x y w h will be filled in when windowfixer is called with the -s command line option
 x=
 y=

@@ -18,6 +18,7 @@ import win32con
 #-----------------------------------------------------------------------
 
 class BadMatchError(Exception): pass
+class BadStateError(Exception): pass
 class IniFileNotFoundError(Exception): pass
 class IniFileNotWriteableError(Exception): pass
 class SkipSaveWindowNotFoundError(Exception): pass
@@ -42,6 +43,15 @@ class WindowObj(object):
     def set_position(self, x, y, w, h):
         win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, x, y, w, h, 0)
 
+    def maximize(self):
+        win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
+
+    def minimize(self):
+        win32gui.ShowWindow(self.hwnd, win32con.SW_MINIMIZE)
+
+    def restore(self):
+        win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
+
     def __str__(self):
         return "{}:{}".format(self.hwnd, self.title())
 
@@ -49,12 +59,15 @@ class WindowObj(object):
 
 class Fixer(object):
     
-    def __init__(self, name, title, match, x, y, w, h, command, run_wait):
+    def __init__(self, name, title, match, state, x, y, w, h, command, run_wait):
         if match not in ["first", "all"]:
             raise BadMatchError("Invalid match mode '{}'; Should be 'first' or 'all'".format(match))
+        if state not in ["normal", "maximized", "minimized"]:
+            raise BadStateError("Invalid state '{}' should be 'normal', 'minimized' or 'maximized'".format(state))
         self.name = name
         self.title = title
         self.match = match
+        self.state = state
         self.x = x
         self.y = y
         self.w = w
@@ -80,7 +93,7 @@ class Fixer(object):
         raise SkipSaveWindowNotFoundError("Window title was not found, skipping...")
     
     def fix(self):
-        if self.x is None or self.y is None or self.w is None or self.h is None:
+        if self.state == "normal" and (self.x is None or self.y is None or self.w is None or self.h is None):
             print "x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
             print "WARNING: Incomplete saved position. Edit the config file, or run with -s after manually positioning the window"
             return
@@ -102,8 +115,17 @@ class Fixer(object):
     def _fix_matching_windows(self):
         found = False
         for win in self.each_window():
-            print "Move window to x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
-            win.set_position(self.x, self.y, self.w, self.h)
+            if self.state == "maximized":
+                print "Maximize window"
+                win.maximize()
+            elif self.state == "minimized":
+                win.minimize()
+            elif self.state == "normal":
+                print "Move window to x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
+                win.restore()
+                win.set_position(self.x, self.y, self.w, self.h)
+            else:
+                raise BadStateError("Invalid state '{}' should be 'normal', 'minimized' or 'maximized'".format(state))
             found = True
         return found
 
@@ -136,6 +158,7 @@ class WindowFixer(object):
         known_options = [
             "title",
             "match",
+            "state",
             "x",
             "y",
             "w",
@@ -151,6 +174,7 @@ class WindowFixer(object):
                 name=section,
                 title=re.compile(self.read(section, "title")),
                 match=self.read(section, "match", "all"),
+                state=self.read(section, "state", "normal"),
                 x=self.readint(section, "x", None),
                 y=self.readint(section, "y", None),
                 w=self.readint(section, "w", None),
