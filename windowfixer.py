@@ -1,6 +1,11 @@
 description = """
 This tool can save and restore the window positions of specific programs.
 """
+
+# This only works on Windows, but could be extended for Mac and Linux
+# support by adding platform-specific replacements for Fixer.each_window()
+# and the WindowObj class.
+
 #-----------------------------------------------------------------------
 
 # Standard packages
@@ -26,6 +31,11 @@ class SkipSaveWindowNotFoundError(Exception): pass
 #-----------------------------------------------------------------------
 
 class WindowObj(object):
+    
+    """
+    This object encapsulates a window handle, and provides
+    convenience functions to get the properties we need.
+    """
     
     def __init__(self, hwnd):
         self.hwnd = hwnd
@@ -66,6 +76,12 @@ class WindowObj(object):
 #-----------------------------------------------------------------------
 
 class Fixer(object):
+    
+    """
+    Given a pattern that matches one or more window titles, this class
+    can adjust the state of all matching windows, including support for
+    launching an executable if the desired window is not found.
+    """
     
     def __init__(self, name, title, match, state, x, y, w, h, command, run_wait):
         if match not in ["first", "all"]:
@@ -140,6 +156,15 @@ class Fixer(object):
 #-----------------------------------------------------------------------
 
 class WindowFixer(object):
+    
+    """
+    This class takes a windowfixer.ini file, reads it in, and creates
+    a Fixer object for each section. The options are documented in
+    windowfixer.ini.example
+    
+    It also has an option save mode that reads the current locations
+    of matching windows, and saves them, re-writing the ini file.
+    """
     
     def __init__(self, ini_file="windowfixer.ini", save_mode=False):
         self.save_mode = save_mode
