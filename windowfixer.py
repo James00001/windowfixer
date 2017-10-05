@@ -15,10 +15,7 @@ import re
 import time
 import subprocess
 
-# Pip packages
-# (from pywin32)
-import win32gui
-import win32con
+import winapiwrapper as apiwrap
 
 #-----------------------------------------------------------------------
 
@@ -41,32 +38,32 @@ class WindowObj(object):
         self.hwnd = hwnd
     
     def title(self):
-        return win32gui.GetWindowText(self.hwnd)
+        return apiwrap.GetWindowText(self.hwnd)
     
     def rect(self):
-        return win32gui.GetWindowRect(self.hwnd)
+        return apiwrap.GetWindowRect(self.hwnd)
     
     def get_position(self):
         r = self.rect()
         return (r[0], r[1], r[2] - r[0], r[3] - r[1])
     
     def set_position(self, x, y, w, h):
-        win32gui.SetWindowPos(self.hwnd, win32con.HWND_TOP, x, y, w, h, 0)
+        apiwrap.SetWindowPos(self.hwnd, apiwrap.HWND_TOP, x, y, w, h, 0)
 
     def maximize(self):
-        win32gui.ShowWindow(self.hwnd, win32con.SW_MAXIMIZE)
+        apiwrap.ShowWindow(self.hwnd, apiwrap.SW_MAXIMIZE)
 
     def minimize(self):
-        win32gui.ShowWindow(self.hwnd, win32con.SW_MINIMIZE)
+        apiwrap.ShowWindow(self.hwnd, apiwrap.SW_MINIMIZE)
 
     def restore(self):
-        win32gui.ShowWindow(self.hwnd, win32con.SW_RESTORE)
+        apiwrap.ShowWindow(self.hwnd, apiwrap.SW_RESTORE)
     
     def get_state(self):
-        st = win32gui.GetWindowPlacement(self.hwnd)[1]
-        if st in (win32con.SW_MAXIMIZE, win32con.SW_SHOWMINIMIZED):
+        st = apiwrap.GetWindowPlacement(self.hwnd)[1]
+        if st in (apiwrap.SW_MINIMIZE, apiwrap.SW_SHOWMINIMIZED):
             return "minimized"
-        if st in (win32con.SW_MAXIMIZE, win32con.SW_SHOWMAXIMIZED):
+        if st in (apiwrap.SW_MAXIMIZE, apiwrap.SW_SHOWMAXIMIZED):
             return "maximized"
         return "normal"
 
@@ -105,7 +102,8 @@ class Fixer(object):
             window = WindowObj(hwnd)
             if self.title.match(window.title()):
                 window_list.append(window)
-        win32gui.EnumWindows(callback, None)
+            return True
+        apiwrap.EnumWindows(callback)
         if self.match == "first":
             return window_list[0:1]
         return window_list
