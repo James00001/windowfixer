@@ -154,6 +154,16 @@ class Fixer(object):
 
 #-----------------------------------------------------------------------
 
+class StringMatcher(object):
+    
+    def __init__(self, pattern):
+        self.pattern = pattern
+    
+    def match(self, text):
+        return self.pattern.lower() in text.lower() 
+
+#-----------------------------------------------------------------------
+
 class WindowFixer(object):
     
     """
@@ -204,7 +214,7 @@ class WindowFixer(object):
         try:
             fixer = Fixer(
                 name=section,
-                title=re.compile(self.read(section, "title")),
+                title=self.get_matcher(self.read(section, "title")),
                 match=self.read(section, "match", "all"),
                 state=self.read(section, "state", "normal"),
                 x=self.readint(section, "x", None),
@@ -236,6 +246,18 @@ class WindowFixer(object):
                 print e
         else:
             fixer.fix()
+    
+    def get_matcher(self, pattern):
+        """
+        If the pattern string is enclosed in /slashes/ then interpret
+        it as a case insensitive regular expression. If it is a
+        string, then interpret it as a case insensitive substring match
+        The return value is an object with a .match() method
+        that is used to compare it to a window title string
+        """
+        if pattern.startswith("/") and pattern.endswith("/"):
+            return re.compile(pattern[1:-1], re.I)
+        return StringMatcher(pattern)
     
     def read(self, section, opt, default=None):
         if self.conf.has_option(section, opt):
@@ -280,7 +302,7 @@ if __name__ == "__main__":
         print "A simple example is below:"
         print ""
         print "[Notepad]"
-        print "title = .* - Notepad$"
+        print "title = /.* - Notepad$/"
         print "state = normal"
         print "x = 0"
         print "y = 0"

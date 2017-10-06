@@ -2,8 +2,9 @@
 
 # The section header can be anything unique
 [Firefox]
-# The title can be any perl-compatible regular expression
-title=.* - Mozilla Firefox$
+# The title can be a substring to match case insensitively, or
+# if enclosed in /slashes/ it can be any perl-compatible regular expression
+title=/.* - Mozilla Firefox$/
 # Valid match values are "first" and "all". Defaults to "all" if ommitted
 match=all
 # state can be "maximized" "minimized" or "normal"
