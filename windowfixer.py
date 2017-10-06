@@ -10,6 +10,7 @@ This tool can save and restore the window positions of specific programs.
 
 # Standard packages
 import os
+import sys
 from ConfigParser import RawConfigParser
 import re
 import time
@@ -272,6 +273,20 @@ if __name__ == "__main__":
     parser.add_argument("--conf", default="windowfixer.ini", metavar="INIFILE", help="Provide an alternate location for the config file. By default, look for windowfixer.ini in the current working directory.")
     parser.add_argument("-s", "--save", action="store_true", help="Instead of moving windows, save their current locations in the config file to be restored later.")
     args = parser.parse_args()
-    app = WindowFixer(ini_file = args.conf, save_mode=args.save)
+    try:
+        app = WindowFixer(ini_file = args.conf, save_mode=args.save)
+    except IniFileNotFoundError:
+        print "The configuration file \"{}\" was not found.".format(args.conf)
+        print "A simple example is below:"
+        print ""
+        print "[Notepad]"
+        print "title = .* - Notepad$"
+        print "state = normal"
+        print "x = 0"
+        print "y = 0"
+        print "w = 300"
+        print "h = 200"
+        print "run_if_not_found = notepad.exe"
+        sys.exit(1)
     app.run()
     
