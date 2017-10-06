@@ -49,6 +49,14 @@ class WINDOWPLACEMENT(ctypes.Structure):
         ("ptMaxPosition", POINT),
         ("rcNormalPosition", RECT),
         ]
+    def __getitem__(self, index):
+        if index == 0: return self.length
+        if index == 1: return self.flags
+        if index == 2: return self.showCmd
+        if index == 3: return self.ptMinPosition
+        if index == 4: return self.ptMaxPosition
+        if index == 5: return self.rcNormalPosition
+        raise IndexError
 user32.GetWindowPlacement.argtypes = [wintypes.HWND, wintypes.POINTER(WINDOWPLACEMENT)]
 
 #-----------------------------------------------------------------------
