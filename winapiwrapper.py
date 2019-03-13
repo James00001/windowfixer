@@ -1,4 +1,4 @@
-# This is a minimalis wrapper around just a few Windows API calls.
+# This is a minimalist wrapper around just a few Windows API calls.
 # It more or less mimics a few of the same functions in pywin32's win32gui,
 # but does not require anything but the built-in ctypes module.
 
@@ -29,7 +29,7 @@ class RECT(ctypes.Structure):
         ("bottom", wintypes.LONG),
         ]
 
-user32.GetWindowRect.argtypes = [wintypes.HWND, wintypes.POINTER(RECT)]
+user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(RECT)]
 
 user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint]
 HWND_TOP = 0
@@ -57,7 +57,7 @@ class WINDOWPLACEMENT(ctypes.Structure):
         if index == 4: return self.ptMaxPosition
         if index == 5: return self.rcNormalPosition
         raise IndexError
-user32.GetWindowPlacement.argtypes = [wintypes.HWND, wintypes.POINTER(WINDOWPLACEMENT)]
+user32.GetWindowPlacement.argtypes = [wintypes.HWND, ctypes.POINTER(WINDOWPLACEMENT)]
 
 #-----------------------------------------------------------------------
 

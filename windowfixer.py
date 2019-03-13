@@ -11,7 +11,7 @@ This tool can save and restore the window positions of specific programs.
 # Standard packages
 import os
 import sys
-from ConfigParser import RawConfigParser
+from configparser import RawConfigParser
 import re
 import time
 import subprocess
@@ -110,20 +110,20 @@ class Fixer(object):
         return window_list
     
     def save(self):
-        print "Save current position..."
+        print("Save current position...")
         for win in self.each_window():
             return win
         raise SkipSaveWindowNotFoundError("Window title was not found, skipping...")
     
     def fix(self):
         if self.state == "normal" and (self.x is None or self.y is None or self.w is None or self.h is None):
-            print "x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
-            print "WARNING: Incomplete saved position. Edit the config file, or run with -s after manually positioning the window"
+            print("x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h))
+            print("WARNING: Incomplete saved position. Edit the config file, or run with -s after manually positioning the window")
             return
         found = self._fix_matching_windows()
         if not found:
             if self.command:
-                print self.command
+                print(self.command)
                 subprocess.Popen([self.command])
                 start = time.time()
                 while time.time() < start + self.run_wait:
@@ -131,20 +131,20 @@ class Fixer(object):
                     found = self._fix_matching_windows()
                     if found: break
                 if not found:
-                    print "Started command, waited {} seconds, and gave up.".format(self.run_wait)
+                    print("Started command, waited {} seconds, and gave up.".format(self.run_wait))
         if not found:
-            print "Unable to find matching window. Skipping."
+            print("Unable to find matching window. Skipping.")
     
     def _fix_matching_windows(self):
         found = False
         for win in self.each_window():
             if self.state == "maximized":
-                print "Maximize window"
+                print("Maximize window")
                 win.maximize()
             elif self.state == "minimized":
                 win.minimize()
             elif self.state == "normal":
-                print "Move window to x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h)
+                print("Move window to x={} y={} w={} h={}".format(self.x, self.y, self.w, self.h))
                 win.restore()
                 win.set_position(self.x, self.y, self.w, self.h)
             else:
@@ -193,9 +193,9 @@ class WindowFixer(object):
                 self.conf.write(f)
     
     def handle_section(self, section):
-        print "[{}]".format(section)
+        print("[{}]".format(section))
         if not self.conf.has_option(section, "title"):
-            print "Section [{}] has no title pattern.".format(section)
+            print("Section [{}] has no title pattern.".format(section))
             return
         known_options = [
             "title",
@@ -210,7 +210,7 @@ class WindowFixer(object):
             ]
         for opt in self.conf.options(section):
             if opt not in known_options:
-                print "WARNING: Unknown option {}= in section [{}]".format(opt, section)
+                print("WARNING: Unknown option {}= in section [{}]".format(opt, section))
         try:
             fixer = Fixer(
                 name=section,
@@ -224,8 +224,8 @@ class WindowFixer(object):
                 command=self.read(section, "run_if_not_found", None),
                 run_wait=self.readfloat(section, "run_keep_trying", 5.0)
                 )
-        except BadMatchError, e:
-            print e
+        except BadMatchError as e:
+            print(e)
             return
         if self.save_mode:
             try:
@@ -234,16 +234,16 @@ class WindowFixer(object):
                 self.conf.set(section, "state", state)
                 if state == "normal":
                     (x, y, w, h) = win.get_position()
-                    print (x, y, w, h)
+                    print( (x, y, w, h) )
                     self.conf.set(section, "x", x)
                     self.conf.set(section, "y", y)
                     self.conf.set(section, "w", w)
                     self.conf.set(section, "h", h)
                 else:
-                    print state
+                    print(state)
                     self.delete_xywh(section)
-            except SkipSaveWindowNotFoundError, e:
-                print e
+            except SkipSaveWindowNotFoundError as e:
+                print(e)
         else:
             fixer.fix()
     
@@ -256,6 +256,7 @@ class WindowFixer(object):
         that is used to compare it to a window title string
         """
         if pattern.startswith("/") and pattern.endswith("/"):
+            print(pattern)
             return re.compile(pattern[1:-1], re.I)
         return StringMatcher(pattern)
     
@@ -298,17 +299,17 @@ if __name__ == "__main__":
     try:
         app = WindowFixer(ini_file = args.conf, save_mode=args.save)
     except IniFileNotFoundError:
-        print "The configuration file \"{}\" was not found.".format(args.conf)
-        print "A simple example is below:"
-        print ""
-        print "[Notepad]"
-        print "title = /.* - Notepad$/"
-        print "state = normal"
-        print "x = 0"
-        print "y = 0"
-        print "w = 300"
-        print "h = 200"
-        print "run_if_not_found = notepad.exe"
+        print("The configuration file \"{}\" was not found.".format(args.conf))
+        print("A simple example is below:")
+        print("")
+        print("[Notepad]")
+        print("title = /.* - Notepad$/")
+        print("state = normal")
+        print("x = 0")
+        print("y = 0")
+        print("w = 300")
+        print("h = 200")
+        print("run_if_not_found = notepad.exe")
         sys.exit(1)
     app.run()
     
